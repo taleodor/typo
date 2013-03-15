@@ -145,12 +145,12 @@ class Admin::ContentController < Admin::BaseController
     id = params[:article][:id] if params[:article] && params[:article][:id]
 	merge_id = params[:merge_with]	
     @article = Article.get_or_build_article(id)
-	if merge_id == "" or (current_user.admin? == false)
+	if merge_id == ""
 	  flash[:notice] = _('No article to merge set')
 	  redirect_to :action => 'index'
 	  return
-	else  
-	  @article.merge_with(merge_id)
+	elsif current_user.admin?  
+	  @article.merge_with(merge_id)	
 	end
     @article.text_filter = current_user.text_filter if current_user.simple_editor?
 	@is_admin = current_user.admin?
