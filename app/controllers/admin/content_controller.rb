@@ -5,7 +5,13 @@ class Admin::ContentController < Admin::BaseController
   layout "administration", :except => [:show, :autosave]
 
   cache_sweeper :blog_sweeper
-
+  
+  def merge_articles
+    article_one = params[:article_one]
+	article_two = params[:article_two]
+	Article.merge_with(article_one, article_two)
+  end
+  
   def auto_complete_for_article_keywords
     @items = Tag.find_with_char params[:article][:keywords].strip
     render :inline => "<%= raw auto_complete_result @items, 'name' %>"
@@ -73,7 +79,8 @@ class Admin::ContentController < Admin::BaseController
           :locals => { :attachment_num => params[:id], :hidden => true }
       page.visual_effect(:toggle_appear, "attachment_#{params[:id]}")
     end
-  end
+  end  
+
 
   def attachment_save(attachment)
     begin
@@ -142,9 +149,17 @@ class Admin::ContentController < Admin::BaseController
   def new_or_edit
     id = params[:id]
     id = params[:article][:id] if params[:article] && params[:article][:id]
+	merge_id = params[:merge_with]	
     @article = Article.get_or_build_article(id)
+	if merge_id == ""
+	  flash[:notice] = _('No article to merge set')
+	  redirect_to :action => 'index'
+	  return
+	else  
+	  @article.merge_with(merge_id)
+	end
     @article.text_filter = current_user.text_filter if current_user.simple_editor?
-
+	@is_admin = current_user.admin?
     @post_types = PostType.find(:all)
     if request.post?
       if params[:article][:draft]
@@ -176,6 +191,8 @@ class Admin::ContentController < Admin::BaseController
         return
       end
     end
+	
+	
 
     @images = Resource.images_by_created_at.page(params[:page]).per(10)
     @resources = Resource.without_images_by_filename
@@ -240,4 +257,6 @@ class Admin::ContentController < Admin::BaseController
   def setup_resources
     @resources = Resource.by_created_at
   end
+  
+
 end

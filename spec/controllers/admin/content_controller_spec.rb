@@ -668,7 +668,22 @@ describe Admin::ContentController do
           response.should redirect_to(:action => 'index')
         end.should_not change(Article, :count)
       end
-
     end
+
+=begin	
+	describe 'merge action' do
+
+      it 'should call the merge model method' do
+	    article_one = Factory(:article, :body => 'article one text', :title => 'first')
+		article_two = Factory(:article, :body => 'article two text', :title => 'second')
+		article_one.should_receive(:merge_with).with(article_two.id)
+		#article_one.should_receive(:merge_with)
+		get :'admin/content', {:action => 'edit', :id => '2', :merge_with => '3'}
+      end
+	end
+=end  
   end
+  
+
+  
 end

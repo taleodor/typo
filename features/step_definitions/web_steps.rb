@@ -41,6 +41,17 @@ Given /^the blog is set up$/ do
                 :profile_id => 1,
                 :name => 'admin',
                 :state => 'active'})
+				
+  User.create!({:login => 'user',
+                :password => '123456',
+                :email => 'joe@snow1.com',
+                :profile_id => 2,
+                :name => 'user',
+                :state => 'active'})
+  user_one = User.find_by_id(2)
+  user_one.profile.label = :publisher
+
+  
 end
 
 And /^I am logged into the admin panel$/ do
@@ -53,6 +64,37 @@ And /^I am logged into the admin panel$/ do
   else
     assert page.has_content?('Login successful')
   end
+end
+
+And /^I am logged as non-admin into the admin panel$/ do
+  visit '/accounts/login'
+  fill_in 'user_login', :with => 'user'
+  fill_in 'user_password', :with => '123456'
+  click_button 'Login'
+  if page.respond_to? :should
+    page.should have_content('Login successful')
+  else
+    assert page.has_content?('Login successful')
+  end
+end
+
+When /^I log out$/ do
+  visit '/accounts/logout'
+end
+
+
+Then /^the active user should be non\-admin$/ do
+  user_one = User.find_by_id(2)
+  # logic = user_one.admin?
+  # logic.should_not be true
+  logic = user_one.publisher?
+  logic.should be true
+end
+
+Then /^the active user should be admin$/ do
+  user_one = User.find_by_id(1)
+  logic = user_one.admin?
+  logic.should be true
 end
 
 # Single-line step scoper

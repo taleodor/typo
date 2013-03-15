@@ -75,6 +75,8 @@ class Article < Content
     return if self.state == 'draft'
     self.permalink = self.title.to_permalink if self.permalink.nil? or self.permalink.empty?
   end
+  
+
 
   def has_child?
     Article.exists?({:parent_id => self.id})
@@ -415,7 +417,32 @@ class Article < Content
   def access_by?(user)
     user.admin? || user_id == user.id
   end
-
+  
+  def merge_with(id = nil)
+    return nil if (id.nil? or id == "")
+	
+	article_to_merge_with = Article.find(id)
+	self.body += article_to_merge_with.body
+	#self.body = "test"
+	self.save
+	article_to_merge_with.comments.each do |comment|
+	    #comment.article_id << self.id
+		#dupe_comment = comment, :article = self
+		copied_comment = Comment.new(:author => comment.author, :article => self, :body => comment.body, :ip => comment.ip, :email => comment.email, :url => comment.url)
+		copied_comment.save
+	end
+	article_to_merge_with.destroy
+	
+	
+	
+	# if Article.find_all_by_id(id) == nil
+	#  return nil
+	# else
+	#self.body << Article.find(id).body
+	#  self.body = "basic text added"
+	#end
+  end
+  
   protected
 
   def set_published_at
@@ -466,4 +493,7 @@ class Article < Content
     to = to - 1 # pull off 1 second so we don't overlap onto the next day
     return from..to
   end
+  
+
+  
 end

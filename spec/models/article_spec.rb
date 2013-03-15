@@ -413,6 +413,92 @@ describe Article do
       @article.body_and_extended.should == @article.body
     end
   end
+  
+  describe 'merge_articles' do
+    before :each do
+      @alice = Factory.build(:user, :profile => Factory.build(:profile_admin, :label => Profile::ADMIN))
+	  @pete = Factory.build(:user, :profile => Factory.build(:profile_admin, :label => Profile::ADMIN))
+=begin
+	  @article1 = Factory(:article, :id =>1, :author => @alice, :title => 'first title', :body => 'basic text')
+	  @article1 = Factory(:article, :id =>2, :author => @pete, :title => 'second', :body => 'added')
+=end
+	  @article1 = Article.new(
+	    :id => 1,
+		:published_at => Time.now - 1.hour,
+		:author => @alice,
+	    :title => 'first title',
+        :body => 'basic text' )
+	  @article2 = Article.new(
+	    :id => 2,
+		:published_at => Time.now - 1.hour,
+		:author => @pete,
+	    :title => 'second',
+        :body => 'added' )
+	  @article1.save
+	  @article2.save
+	  
+    end
+
+    it 'should keep the title' do
+      @article1.merge_with(@article2.id)
+	  @article1.title.should == "first title"
+    end
+	
+	it 'should keep the author' do
+      @article1.merge_with(@article2.id)
+	  @article1.author.should be @alice
+    end
+	
+    it 'should merge the body' do      	  
+	  @article1.merge_with(@article2.id)	  
+	  @article1.body.should =~ /basic text.*added/
+    end
+	
+	it 'should return nil if parameter is missing' do
+      @article1.merge_with().should be nil
+    end
+	
+	it 'should merge the comments' do
+
+      @comment_one = Comment.new({:author => @alice,
+                :article_id => 1,
+                :body => 'nice post',
+                :ip => '1.2.3.4'}.merge({}))
+	  @comment_two = Comment.new({:author => @pete,
+                :article_id => 2,
+                :body => 'second comment',
+                :ip => '5.6.7.8'}.merge({}))
+	  @comment_one.save
+	  @comment_two.save
+=begin
+		 @blog = Factory(:blog)
+		 @article1 = Factory(:article)
+		 @article2 = Factory(:article)
+         comment_one = {:body => 'content', :author => 'bob', :email => 'bob@home', :url => 'http://bobs.home/'}
+         post :create, :comment => comment_one, :article_id => @article1.id
+=end      
+	    @article1.comments.size.should == 1
+	    @article2.comments.size.should == 1
+	    @article1.merge_with(@article2.id)
+		
+		@article1.comments.size.should == 2
+	  # @comment_one.author should be 'Bob'
+	  # @comment_one.article_id should eq @article1.id
+	  # @comment_two.article should be @article2
+	  
+    end
+	
+	it 'should destroy the second article' do
+	  @deleted_id = @article2.id
+	  @article1.merge_with(@article2.id)
+      Article.find_all_by_id(@deleted_id).should eq []
+    end
+
+  #  it 'should not insert <!--more--> tags if extended is empty' do
+  #    @article.extended = ''
+  #    @article.body_and_extended.should == @article.body
+  #  end
+  end
 
   describe '#search' do
 

@@ -68,6 +68,7 @@ describe ArticlesController do
   end
 
 
+
   describe '#search action' do
     before :each do
       Factory(:article,
