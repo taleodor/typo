@@ -28,6 +28,7 @@ Feature: Article Merging
 	And I follow "Foobar"
 	And I fill in "comment_author" with "Test author one"
 	And I fill in "comment_body" with "Comment one"
+	And I press "comment"
 	And I am logged into the admin panel
 	When I am on the new article page
 	When I fill in "article_title" with "Test title"
@@ -35,13 +36,19 @@ Feature: Article Merging
     And I press "Publish"
 	When I am on the home page
 	And I follow "Test title"
+	And I should see "Added Text"
 	And I fill in "comment_author" with "Admin author"
 	And I fill in "comment_body" with "Second note"
-	When I am on the Foobar edit page	
-	And I fill in "merge_with" with "2"
+	And I press "comment"
+	When I am on the admin page	
+	And I follow "All Articles"
+	And I follow "Foobar"
+	And I fill in "merge_with" with "4"
 	And I press "Merge"
-	Then I should see "user"
-	And I should not see "admin"
+	And I should see "Added Text"	
+	And I follow "All Articles"
+	Then I should not see "Test title"
+	And I should see "Foobar"	
 	When I am on the home page
 	And I follow "Foobar"
 	Then I should see "Lorem Ipsum"
@@ -49,7 +56,6 @@ Feature: Article Merging
 	And I should not see "Test title"
 	And I should see "Comment one"
 	And I should see "Second note"
-	
 	
 	
 
